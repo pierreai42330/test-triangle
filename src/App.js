@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer } from "recharts";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "./components/ui/button";
+import { Input } from "./components/ui/input";
+import { Textarea } from "./components/ui/textarea";
+import { Card, CardContent } from "./components/ui/card";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28"];
 
@@ -104,7 +104,5 @@ export default function TriangleTestApp() {
     pdf.save("rapport-degustation.pdf");
   };
 
-  // le return ici inclura les étapes 1, 2 et 3 comme dans ton interface
   return null;
 }
-
