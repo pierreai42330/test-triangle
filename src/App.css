@@ -3,21 +3,29 @@ body {
   background-color: #f9f9f9;
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
 }
 
 .container {
   max-width: 800px;
-  margin: 40px auto;
+  margin: 60px auto;
   background: white;
   padding: 40px;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
   border-radius: 12px;
-  
-  /* Ajoute des marges internes pour les petits écrans */
-  margin-left: 20px;
-  margin-right: 20px;
+
+  /* ✅ marges internes solides */
+  padding-left: 30px;
+  padding-right: 30px;
 }
 
+/* ✅ assure une bonne marge sur les côtés même en mobile */
+@media (max-width: 600px) {
+  .container {
+    margin: 20px;
+    padding: 20px;
+  }
+}
 
 h2 {
   text-align: center;
@@ -30,18 +38,21 @@ label {
   font-weight: bold;
 }
 
-input, textarea, select {
+input,
+textarea,
+select {
   width: 100%;
   padding: 10px;
   margin-top: 8px;
   border-radius: 6px;
   border: 1px solid #ccc;
   font-size: 14px;
+  box-sizing: border-box;
 }
 
 button {
   margin-top: 30px;
-  padding: 12px 20px;
+  padding: 14px 20px;
   background-color: #0070f3;
   color: white;
   border: none;
@@ -55,3 +66,4 @@ button {
 button:hover {
   background-color: #0059c1;
 }
+
