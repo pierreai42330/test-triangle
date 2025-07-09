@@ -72,34 +72,65 @@ export default function App() {
   };
 
   const exportPDF = () => {
-    const pdf = new jsPDF();
-    pdf.setFontSize(14);
-    pdf.text(`Rapport de test organoleptique`, 10, 20);
+  const pdf = new jsPDF();
+
+  // 🟦 Logo Hafner (assurez-vous que le fichier est dans /public)
+  const logo = new Image();
+  logo.src = `${window.location.origin}/logo-hafner.png`;
+  logo.onload = () => {
+    pdf.addImage(logo, "PNG", 10, 10, 30, 15); // x, y, width, height
+
+    // Titre stylisé
+    pdf.setFontSize(16);
+    pdf.setFont("helvetica", "bold");
+    pdf.text("Rapport de test triangulaire organoleptique", 105, 25, { align: "center" });
+
+    // Phrase d'intro norme
+    pdf.setFontSize(10);
+    pdf.setFont("helvetica", "normal");
+    pdf.text(
+      "Test réalisé conformément à la norme ISO 4120:2004 (Analyse sensorielle - Méthode triangulaire).",
+      105,
+      32,
+      { align: "center" }
+    );
+
+    // Infos générales
     pdf.setFontSize(11);
-    pdf.text(`Essai : ${sampleInfo.essai}`, 10, 30);
-    pdf.text(`Date : ${sampleInfo.date}`, 10, 38);
-    pdf.text(`Échantillons testés : ${sampleInfo.samples}`, 10, 46);
-    pdf.text(`Produit A : ${sampleInfo.produitA}`, 10, 54);
-    pdf.text(`Produit B : ${sampleInfo.produitB}`, 10, 62);
-    pdf.text(`Nombre de dégustateurs : ${numTesters}`, 10, 74);
-    pdf.text(`Réponses correctes : ${analysis?.correctCount}`, 10, 82);
-    pdf.text(`Seuil requis : ${analysis?.requiredCorrect}`, 10, 90);
-    pdf.text(`Résultat : ${analysis?.significance ? "Test significatif" : "Non significatif"}`, 10, 98);
-    pdf.text(`Intensité moyenne perçue : ${analysis?.averageIntensity}/5`, 10, 106);
-    let y = 116;
-    pdf.text("Répartition Goût / Texture :", 10, y);
-    y += 8;
+    let y = 45;
+    pdf.text(`Essai : ${sampleInfo.essai}`, 10, y); y += 8;
+    pdf.text(`Date : ${sampleInfo.date}`, 10, y); y += 8;
+    pdf.text(`Échantillons testés : ${sampleInfo.samples}`, 10, y); y += 8;
+    pdf.text(`Produit A : ${sampleInfo.produitA}`, 10, y); y += 8;
+    pdf.text(`Produit B : ${sampleInfo.produitB}`, 10, y); y += 12;
+
+    // Résultats analytiques
+    pdf.text(`Nombre de dégustateurs : ${numTesters}`, 10, y); y += 8;
+    pdf.text(`Réponses correctes : ${analysis?.correctCount}`, 10, y); y += 8;
+    pdf.text(`Seuil requis : ${analysis?.requiredCorrect}`, 10, y); y += 8;
+    pdf.text(`Résultat : ${analysis?.significance ? "✅ Test significatif" : "❌ Non significatif"}`, 10, y); y += 8;
+    pdf.text(`Intensité moyenne perçue : ${analysis?.averageIntensity}/5`, 10, y); y += 12;
+
+    // Répartition Goût / Texture
+    pdf.text("Répartition des perceptions :", 10, y); y += 8;
     analysis?.typeData.forEach(t => {
-      pdf.text(`${t.name} : ${t.value}`, 14, y);
-      y += 8;
+      pdf.text(`• ${t.name} : ${t.value}`, 14, y);
+      y += 6;
     });
+
+    // Conclusion
     y += 10;
     const conclusion = analysis?.significance
       ? `Conclusion : Une différence significative a été perçue entre ${sampleInfo.produitA} et ${sampleInfo.produitB}.`
       : `Conclusion : Aucune différence significative n'a été perçue entre ${sampleInfo.produitA} et ${sampleInfo.produitB}.`;
+    pdf.setFont("helvetica", "bold");
     pdf.text(conclusion, 10, y);
+
+    // Enregistrer le PDF
     pdf.save("rapport-degustation.pdf");
   };
+};
+
 
   if (step === 1) {
     return (
