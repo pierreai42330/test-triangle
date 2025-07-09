@@ -1,6 +1,6 @@
 // 1. Fichier complet App.jsx (ou App.js si tu ne veux pas de TypeScript)
 // À placer dans /src/App.jsx
-
+import "./App.css";
 import React, { useState } from "react";
 import jsPDF from "jspdf";
 import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer } from "recharts";
