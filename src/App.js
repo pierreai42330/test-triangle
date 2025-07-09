@@ -1,11 +1,10 @@
+
+// 1. Fichier complet App.jsx (ou App.js si tu ne veux pas de TypeScript)
+// À placer dans /src/App.jsx
+import "./App.css";
 import React, { useState } from "react";
 import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
 import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer } from "recharts";
-import { Button } from "./components/ui/button";
-import { Input } from "./components/ui/input";
-import { Textarea } from "./components/ui/textarea";
-import { Card, CardContent } from "./components/ui/card";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28"];
 
@@ -25,84 +24,162 @@ function getCorrectAnswer(combinaison) {
   return ["X", "Y", "Z"][combinaison.toUpperCase().indexOf(intrus)];
 }
 
-export default function TriangleTestApp() {
+export default function App() {
   const [step, setStep] = useState(1);
+  const [numTesters, setNumTesters] = useState(20);
   const [results, setResults] = useState([]);
   const [current, setCurrent] = useState(0);
   const [sampleInfo, setSampleInfo] = useState({ date: "", samples: "", essai: "", produitA: "", produitB: "" });
   const [input, setInput] = useState({ response: "", intensity: "", type: "", remarks: "" });
   const [analysis, setAnalysis] = useState(null);
+  const [error, setError] = useState("");
 
   const handleNext = () => {
     const degustateurId = current + 1;
     const combinaison = combinaisonMap[degustateurId];
+    if (!combinaison) {
+      setError("Erreur : aucune combinaison définie pour ce dégustateur (limite de 20).");
+      return;
+    }
+    setError("");
     const correctAnswer = getCorrectAnswer(combinaison);
     const correct = input.response.toUpperCase() === correctAnswer;
     const entry = { ...input, combinaison, correct };
-    const newResults = [...results, entry];
-    setResults(newResults);
+    const updatedResults = [...results, entry];
+    setResults(updatedResults);
     setInput({ response: "", intensity: "", type: "", remarks: "" });
-    if (current + 1 < 20) {
+    if (degustateurId < numTesters) {
       setCurrent(current + 1);
     } else {
       setStep(3);
-      analyze(newResults);
+      analyze(updatedResults);
     }
   };
 
   const analyze = (data) => {
     const correctCount = data.filter(d => d.correct).length;
-    const requiredCorrect = Math.ceil(20 * 0.55);
+    const requiredCorrect = Math.ceil(numTesters * 0.55);
     const significance = correctCount >= requiredCorrect;
-    const averageIntensity = (data.reduce((sum, d) => sum + Number(d.intensity), 0) / 20).toFixed(2);
+    const averageIntensity = (data.reduce((sum, d) => sum + Number(d.intensity), 0) / numTesters).toFixed(2);
     const typeMap = { "goût": "goût", "gout": "goût", "texture": "texture", "les deux": "les deux" };
     const counts = { "goût": 0, "texture": 0, "les deux": 0 };
     data.forEach(d => {
-      const normalized = typeMap[d.type.toLowerCase().trim()];
-      if (normalized) counts[normalized]++;
+      const norm = typeMap[d.type.toLowerCase().trim()];
+      if (norm) counts[norm]++;
     });
     const typeData = Object.keys(counts).map(k => ({ name: k, value: counts[k] })).filter(e => e.value > 0);
     setAnalysis({ correctCount, requiredCorrect, significance, averageIntensity, typeData, data });
   };
 
-  const exportPDF = async () => {
+  const exportPDF = () => {
     const pdf = new jsPDF();
-
-    const logo = new Image();
-    logo.src = "/logo-hafner.png";
-    await new Promise(res => logo.onload = res);
-    pdf.addImage(logo, "PNG", 10, 10, 30, 30);
-
-    pdf.setFontSize(18);
-    pdf.text("Rapport de test organoleptique triangulaire", 105, 20, { align: "center" });
-    pdf.setFontSize(12);
-    let y = 50;
-    pdf.text(`Nom de l’essai : ${sampleInfo.essai}`, 14, y); y += 8;
-    pdf.text(`Date du test : ${sampleInfo.date}`, 14, y); y += 8;
-    pdf.text(`Échantillons testés : ${sampleInfo.samples}`, 14, y); y += 8;
-    pdf.text(`Produit A : ${sampleInfo.produitA}`, 14, y); y += 8;
-    pdf.text(`Produit B : ${sampleInfo.produitB}`, 14, y); y += 8;
-    pdf.text(`Nombre de dégustateurs : 20`, 14, y); y += 12;
-    pdf.text(`Nombre de réponses correctes : ${analysis.correctCount}`, 14, y); y += 8;
-    pdf.text(`Seuil requis (55%) : ${analysis.requiredCorrect}`, 14, y); y += 8;
-    pdf.text(`Test significatif ? : ${analysis.significance ? "✅ Oui" : "❌ Non"}`, 14, y); y += 8;
-    pdf.text(`Intensité moyenne perçue : ${analysis.averageIntensity}/5`, 14, y); y += 12;
-
-    const conclusion = analysis.significance
-      ? `✅ Une différence significative a été perçue entre ${sampleInfo.produitA} et ${sampleInfo.produitB}.`
-      : `❌ Aucune différence significative n'a été perçue entre ${sampleInfo.produitA} et ${sampleInfo.produitB}.`;
+    pdf.setFontSize(14);
+    pdf.text(`Rapport de test organoleptique`, 10, 20);
     pdf.setFontSize(11);
-    pdf.text(conclusion, 14, y); y += 20;
-
-    const pieElement = document.getElementById("pie-chart-capture");
-    if (pieElement) {
-      const canvas = await html2canvas(pieElement);
-      const imgData = canvas.toDataURL("image/png");
-      pdf.addImage(imgData, "PNG", 40, y, 130, 90);
-    }
-
+    pdf.text(`Essai : ${sampleInfo.essai}`, 10, 30);
+    pdf.text(`Date : ${sampleInfo.date}`, 10, 38);
+    pdf.text(`Échantillons testés : ${sampleInfo.samples}`, 10, 46);
+    pdf.text(`Produit A : ${sampleInfo.produitA}`, 10, 54);
+    pdf.text(`Produit B : ${sampleInfo.produitB}`, 10, 62);
+    pdf.text(`Nombre de dégustateurs : ${numTesters}`, 10, 74);
+    pdf.text(`Réponses correctes : ${analysis?.correctCount}`, 10, 82);
+    pdf.text(`Seuil requis : ${analysis?.requiredCorrect}`, 10, 90);
+    pdf.text(`Résultat : ${analysis?.significance ? "Test significatif" : "Non significatif"}`, 10, 98);
+    pdf.text(`Intensité moyenne perçue : ${analysis?.averageIntensity}/5`, 10, 106);
+    let y = 116;
+    pdf.text("Répartition Goût / Texture :", 10, y);
+    y += 8;
+    analysis?.typeData.forEach(t => {
+      pdf.text(`${t.name} : ${t.value}`, 14, y);
+      y += 8;
+    });
+    y += 10;
+    const conclusion = analysis?.significance
+      ? `Conclusion : Une différence significative a été perçue entre ${sampleInfo.produitA} et ${sampleInfo.produitB}.`
+      : `Conclusion : Aucune différence significative n'a été perçue entre ${sampleInfo.produitA} et ${sampleInfo.produitB}.`;
+    pdf.text(conclusion, 10, y);
     pdf.save("rapport-degustation.pdf");
   };
+
+  if (step === 1) {
+    return (
+      <div className="p-4 max-w-xl mx-auto">
+        <h1 className="text-xl font-bold mb-2">Informations sur le test</h1>
+        <label>Nom de l'essai</label>
+        <input className="border p-2 w-full mb-2" value={sampleInfo.essai} onChange={e => setSampleInfo({ ...sampleInfo, essai: e.target.value })} />
+        <label>Date du test</label>
+        <input type="date" className="border p-2 w-full mb-2" value={sampleInfo.date} onChange={e => setSampleInfo({ ...sampleInfo, date: e.target.value })} />
+        <label>Échantillons testés</label>
+        <input className="border p-2 w-full mb-2" value={sampleInfo.samples} onChange={e => setSampleInfo({ ...sampleInfo, samples: e.target.value })} />
+        <label>Produit A</label>
+        <input className="border p-2 w-full mb-2" value={sampleInfo.produitA} onChange={e => setSampleInfo({ ...sampleInfo, produitA: e.target.value })} />
+        <label>Produit B</label>
+        <input className="border p-2 w-full mb-2" value={sampleInfo.produitB} onChange={e => setSampleInfo({ ...sampleInfo, produitB: e.target.value })} />
+        <label>Nombre de dégustateurs (max 20)</label>
+        <input type="number" className="border p-2 w-full mb-2" value={numTesters} onChange={e => setNumTesters(Math.min(20, Math.max(1, parseInt(e.target.value) || 1)))} />
+        <button className="bg-blue-500 text-white px-4 py-2 mt-4" onClick={() => setStep(2)}>Commencer la saisie des résultats</button>
+      </div>
+    );
+  }
+
+  if (step === 2) {
+    const degustateurId = current + 1;
+    const combinaison = combinaisonMap[degustateurId];
+    return (
+      <div className="p-4 max-w-xl mx-auto">
+        <h2 className="text-lg font-bold mb-2">Dégustateur n°{degustateurId}</h2>
+        <p>Combinaison présentée : <strong>{combinaison}</strong></p>
+        {error && <p className="text-red-600">{error}</p>}
+        <label>Échantillon perçu comme différent (X, Y ou Z)</label>
+        <input className="border p-2 w-full mb-2" value={input.response} onChange={e => setInput({ ...input, response: e.target.value })} />
+        <label>Intensité de la différence (sur 5)</label>
+        <input className="border p-2 w-full mb-2" value={input.intensity} onChange={e => setInput({ ...input, intensity: e.target.value })} />
+        <label>Type de différence (goût, texture, les deux)</label>
+        <input className="border p-2 w-full mb-2" value={input.type} onChange={e => setInput({ ...input, type: e.target.value })} />
+        <label>Remarques</label>
+        <textarea className="border p-2 w-full mb-2" value={input.remarks} onChange={e => setInput({ ...input, remarks: e.target.value })} />
+        <button className="bg-blue-500 text-white px-4 py-2" onClick={handleNext}>Suivant</button>
+      </div>
+    );
+  }
+
+  if (step === 3 && analysis) {
+    return (
+      <div className="p-4 max-w-3xl mx-auto">
+        <h2 className="text-xl font-bold mb-4">Résultats</h2>
+        <p>Réponses correctes : {analysis.correctCount}</p>
+        <p>Seuil requis : {analysis.requiredCorrect}</p>
+        <p>Résultat : {analysis.significance ? "Test significatif" : "Non significatif"}</p>
+        <p>Intensité moyenne : {analysis.averageIntensity}/5</p>
+
+        <div className="my-6">
+          <h3 className="text-lg font-semibold">Répartition des perceptions</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie data={analysis.typeData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label>
+                {analysis.typeData.map((_, i) => (
+                  <Cell key={`cell-${i}`} fill={COLORS[i % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="mt-4">
+          <h3 className="text-lg font-semibold">Remarques des dégustateurs</h3>
+          <ul className="list-disc ml-6">
+            {analysis.data.map((d, i) => (
+              <li key={i}><strong>Dégustateur {i + 1} :</strong> {d.remarks}</li>
+            ))}
+          </ul>
+        </div>
+
+        <button className="bg-green-600 text-white px-4 py-2 mt-6" onClick={exportPDF}>Exporter le rapport PDF</button>
+      </div>
+    );
+  }
 
   return null;
 }
