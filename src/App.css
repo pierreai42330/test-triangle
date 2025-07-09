@@ -1,25 +1,26 @@
+/* style général */
 body {
   font-family: Arial, sans-serif;
-  background-color: #f9f9f9;
+  background-color: #f0f2f5;
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
 }
 
+/* le bloc principal centré */
 .container {
+  width: 100%;
   max-width: 800px;
-  margin: 60px auto;
+  margin: 60px 40px;
   background: white;
   padding: 40px;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
   border-radius: 12px;
-
-  /* ✅ marges internes solides */
-  padding-left: 30px;
-  padding-right: 30px;
+  box-sizing: border-box;
 }
 
-/* ✅ assure une bonne marge sur les côtés même en mobile */
+/* responsive */
 @media (max-width: 600px) {
   .container {
     margin: 20px;
@@ -27,6 +28,7 @@ body {
   }
 }
 
+/* typographie */
 h2 {
   text-align: center;
   margin-bottom: 30px;
@@ -66,4 +68,3 @@ button {
 button:hover {
   background-color: #0059c1;
 }
-
