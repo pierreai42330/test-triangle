@@ -119,12 +119,40 @@ export default function App() {
         y += 6;
       });
 
-      y += 10;
-      const conclusion = analysis?.significance
-        ? `Conclusion : Une différence significative a été perçue entre ${sampleInfo.produitA} et ${sampleInfo.produitB}.`
-        : `Conclusion : Aucune différence significative n'a été perçue entre ${sampleInfo.produitA} et ${sampleInfo.produitB}.`;
-      pdf.setFont("helvetica", "bold");
-      pdf.text(conclusion, 10, y);
+     y += 10;
+const conclusion = analysis?.significance
+  ? `Conclusion : Une différence significative a été perçue entre ${sampleInfo.produitA} et ${sampleInfo.produitB}.`
+  : `Conclusion : Aucune différence significative n'a été perçue entre ${sampleInfo.produitA} et ${sampleInfo.produitB}.`;
+pdf.setFont("helvetica", "bold");
+pdf.text(conclusion, 10, y);
+y += 10;
+
+// Table des remarques si présentes
+const remarques = analysis?.data
+  .map((d, i) => ({ num: i + 1, remarque: d.remarks?.trim() }))
+  .filter(d => d.remarque && d.remarque.length > 0);
+
+if (remarques.length > 0) {
+  y += 10;
+  pdf.setFont("helvetica", "bold");
+  pdf.text("Remarques des dégustateurs :", 10, y);
+  y += 8;
+  pdf.setFont("helvetica", "normal");
+
+  remarques.forEach(d => {
+    const text = `• Dégustateur ${d.num} : ${d.remarque}`;
+    const lines = pdf.splitTextToSize(text, 180);
+    lines.forEach(line => {
+      if (y > 270) {
+        pdf.addPage();
+        y = 20;
+      }
+      pdf.text(line, 10, y);
+      y += 6;
+    });
+  });
+}
+
 
       pdf.save("rapport-degustation.pdf");
     };
