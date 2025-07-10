@@ -169,8 +169,28 @@ export default function App() {
         <input className="border p-2 w-full mb-2" value={input.type} onChange={e => setInput({ ...input, type: e.target.value })} />
         <label>Remarques</label>
         <textarea className="border p-2 w-full mb-2" value={input.remarks} onChange={e => setInput({ ...input, remarks: e.target.value })} />
-        <button className="bg-blue-500 text-white px-4 py-2" onClick={handleNext}>Suivant</button>
-      </div>
+        <div className="flex justify-between mt-4">
+  <button
+    className="bg-gray-400 text-white px-4 py-2"
+    disabled={current === 0}
+    onClick={() => {
+      // On revient au dégustateur précédent
+      const newResults = [...results];
+      newResults.pop(); // On retire la dernière saisie
+      setResults(newResults);
+      setCurrent(current - 1);
+    }}
+  >
+    ⬅ Précédent
+  </button>
+
+  <button
+    className="bg-blue-500 text-white px-4 py-2"
+    onClick={handleNext}
+  >
+    Suivant ➡
+  </button>
+</div>
     );
   }
 
